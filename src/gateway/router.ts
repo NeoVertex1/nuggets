@@ -78,6 +78,9 @@ async function handleMessage(
     log.info({ jid, responseLen: response.length }, "Reply sent");
   } catch (err) {
     log.error({ jid, err }, "Error handling message");
+    // Kill the Pi process so next message gets a clean one
+    pool.kill(jid);
+    return;
   } finally {
     pool.markIdle(jid);
   }

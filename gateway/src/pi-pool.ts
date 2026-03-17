@@ -88,6 +88,16 @@ export class PiPool {
     }, PI_IDLE_TIMEOUT_MS);
   }
 
+  /** Force-kill a Pi process so the next getOrCreate() spawns fresh */
+  kill(jid: string): void {
+    const session = this.sessions.get(jid);
+    if (!session) return;
+    if (session.idleTimer) clearTimeout(session.idleTimer);
+    session.rpc.stop();
+    this.sessions.delete(jid);
+    log.info({ jid }, "Pi process killed (error recovery)");
+  }
+
   stopAll(): void {
     for (const [jid, session] of this.sessions) {
       if (session.idleTimer) clearTimeout(session.idleTimer);

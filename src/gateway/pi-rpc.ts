@@ -23,6 +23,7 @@ export class PiRpc extends EventEmitter {
   private proc: ChildProcess | null = null;
   private buffer = "";
   private nextId = 1;
+  private processing = false;
   private pending = new Map<number, {
     resolve: (result: PromptResult) => void;
     reject: (err: Error) => void;
@@ -95,9 +96,18 @@ export class PiRpc extends EventEmitter {
     const req: Record<string, unknown> = { id, type: "prompt", message };
     if (images?.length) req.images = images;
 
+    // If Pi is already processing, tell it to queue this message
+    if (this.processing) {
+      req.streamingBehavior = "followUp";
+      log.info({ id }, "Pi busy — sending as followUp");
+    }
+
+    this.processing = true;
+
     return new Promise<PromptResult>((resolve, reject) => {
       const startTimer = () => setTimeout(() => {
         this.pending.delete(id);
+        this.processing = this.pending.size > 0;
         reject(new Error(`Pi prompt timed out after ${idleTimeout}ms of inactivity`));
       }, idleTimeout);
 
@@ -180,6 +190,7 @@ export class PiRpc extends EventEmitter {
         const errText = typeof event.error === "string" ? event.error : "Unknown Pi error";
         if (pending.timer) clearTimeout(pending.timer);
         this.pending.delete(pendingKey!);
+        this.processing = this.pending.size > 0;
         log.error({ id: pendingKey, error: errText }, "Pi prompt error");
         pending.resolve({ events: pending.events, text: `Error: ${errText}` });
         return;
@@ -192,6 +203,7 @@ export class PiRpc extends EventEmitter {
         const text = this.extractTextFromAgentEnd(event);
         if (pending.timer) clearTimeout(pending.timer);
         this.pending.delete(pendingKey!);
+        this.processing = this.pending.size > 0;
         log.info({ id: pendingKey, textLen: text.length }, "Pi prompt complete");
         pending.resolve({ events: pending.events, text });
       }
@@ -228,5 +240,6 @@ export class PiRpc extends EventEmitter {
       pending.reject(err);
     }
     this.pending.clear();
+    this.processing = false;
   }
 }
