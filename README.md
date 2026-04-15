@@ -2,6 +2,46 @@
 A personal AI assistant that remembers. Nuggets combines holographic memory with a multi-channel messaging gateway so your AI actually learns from conversations — facts recalled often get promoted to permanent memory, and everything persists across restarts.
 ![Logo](https://github.com/NeoVertex1/nuggets/blob/d180ee6df491d2db741eed0bf254ba917a4c12e2/images/Gemini_Generated_Image_mgaktymgaktymgak.png)
 
+## New: Nuggets Memory plugin
+
+If you want the new plugin/MCP version of Nuggets for coding agents, start here.
+
+Package:
+- `nuggets-memory-plugin`
+
+Install:
+```bash
+npm install -g nuggets-memory-plugin
+```
+
+Then register it with your agent host using the host's native MCP command.
+
+### Hermes Agent
+```bash
+hermes mcp add nuggets-memory --command nuggets-memory-plugin
+```
+
+### Claude Code
+```bash
+claude mcp add nuggets-memory -- nuggets-memory-plugin
+```
+
+### Codex
+```bash
+codex mcp add nuggets-memory -- nuggets-memory-plugin
+```
+
+What the plugin is for:
+- lightweight cross-session memory nudges
+- short durable facts
+- preferences, corrections, and tiny project hints
+- MCP tools like `guide`, `nudges`, `recall`, `remember`, `list`, and `status`
+
+Notes:
+- If startup speed matters, prefer the globally installed binary above over `npx`.
+- The plugin-first workspace and release flow live in [`nuggets-memory/`](./nuggets-memory).
+- The rest of this README documents the original Nuggets app/gateway project and older non-plugin workflow.
+
 ## Why Nuggets?
 
 LLM agents forget everything between sessions. RAG systems fix this but need vector databases, embedding APIs, and infrastructure. Nuggets takes a different approach:
@@ -72,7 +112,7 @@ npm run dev
 
 ### Setup Wizard
 
-`npm run setup` walks you through configuration interactively:
+`npm run setup` walks you through configuration interactively and is the recommended path for first run because it writes `.env` for you:
 
 ```
   Nuggets Setup Wizard
@@ -193,6 +233,21 @@ src/
 | `npm run dev` | Start the gateway (Telegram + WhatsApp) |
 | `npm test` | Run tests |
 | `npm run migrate:memory` | Migrate legacy single-file memory to kind-based layout |
+| `npm run typecheck` | Type-check without emitting |
+| `npm run build` | Compile to `dist/` |
+
+## Testing
+
+```bash
+npm test
+```
+
+Tests cover HRR math (bind/unbind accuracy, orthogonalization), nugget operations (remember/recall/forget lifecycle), and shelf management.
+
+## License
+
+MIT
+npm run migrate:memory` | Migrate legacy single-file memory to kind-based layout |
 | `npm run typecheck` | Type-check without emitting |
 | `npm run build` | Compile to `dist/` |
 
